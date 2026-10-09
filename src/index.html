@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#0a0a0a">
+  <title>POS terminal by sandropay</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      height: 100%;
+      min-height: 100dvh;
+      width: 100%;
+      overflow: hidden;
+    }
+
+    body {
+      background: #0a0a0a;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-family: Arial, sans-serif;
+      position: relative;
+      color: white;
+      padding: 20px;
+      gap: clamp(14px, 3vh, 30px);
+    }
+
+    /* Зелёные анимированные круги */
+    .circle {
+      position: absolute;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(0,255,100,0.4) 0%, rgba(0,255,100,0) 70%);
+      animation: float 12s infinite ease-in-out;
+      mix-blend-mode: screen;
+      pointer-events: none;
+    }
+
+    @keyframes float {
+      0% { transform: translateY(0) scale(1); opacity: 0.6; }
+      50% { transform: translateY(-50px) scale(1.3); opacity: 0.3; }
+      100% { transform: translateY(0) scale(1); opacity: 0.6; }
+    }
+
+    h1 {
+      font-size: clamp(1.4rem, 5vw, 3rem);
+      text-align: center;
+      text-shadow: 0 0 15px #00ff66, 0 0 30px #00ff66;
+      z-index: 2;
+      line-height: 1.15;
+      max-width: 95vw;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      max-width: 650px;
+      padding: clamp(10px, 1.8vw, 15px) clamp(12px, 2vw, 20px);
+      font-size: clamp(0.9rem, 2.4vw, 1.4rem);
+      border: none;
+      border-radius: 10px;
+      outline: none;
+      background: #222;
+      color: #fff;
+      box-shadow: 0 0 10px #00ff66;
+      z-index: 2;
+      text-align: center;
+    }
+
+    /* Мерцающий неоновый текст */
+    .neon-text {
+      font-size: clamp(0.85rem, 2.2vw, 1.2rem);
+      color: #c800ff;
+      text-shadow: 0 0 10px #c800ff, 0 0 20px #c800ff, 0 0 40px #c800ff;
+      animation: blink 1.5s infinite;
+      z-index: 2;
+      text-align: center;
+      max-width: 95vw;
+      line-height: 1.3;
+      padding: 0 8px;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    /* Кнопки */
+    .buttons {
+      display: flex;
+      gap: clamp(8px, 1.5vw, 20px);
+      z-index: 2;
+      flex-wrap: wrap;
+      justify-content: center;
+      width: 100%;
+      max-width: 750px;
+    }
+
+    button {
+      padding: clamp(10px, 1.5vw, 15px) clamp(16px, 2.5vw, 30px);
+      font-size: clamp(0.85rem, 2.2vw, 1.2rem);
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      background: #00ff66;
+      color: #000;
+      font-weight: bold;
+      transition: background 0.3s, transform 0.2s;
+      white-space: nowrap;
+      flex: 1 1 auto;
+      min-width: 0;
+    }
+
+    button:hover {
+      background: #00cc52;
+      transform: scale(1.05);
+    }
+
+    /* Всплывающее окно */
+    .popup-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      justify-content: center;
+      align-items: center;
+      z-index: 999;
+      padding: 20px;
+    }
+
+    .popup {
+      background: #1a1a1a;
+      padding: clamp(25px, 4vw, 40px) clamp(30px, 5vw, 60px);
+      border-radius: 14px;
+      text-align: center;
+      position: relative;
+      box-shadow: 0 0 20px #ff008c;
+      animation: popIn 0.3s ease;
+      min-width: 0;
+      width: 100%;
+      max-width: 420px;
+    }
+
+    .popup h2 {
+      color: #ff008c;
+      font-size: clamp(1.2rem, 3.5vw, 1.8rem);
+      text-shadow: 0 0 15px #ff008c;
+    }
+
+    @keyframes popIn {
+      from { transform: scale(0.8); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    /* Крестик */
+    .close-btn {
+      position: absolute;
+      top: -16px;
+      right: -16px;
+      background: #ff008c;
+      border: none;
+      border-radius: 50%;
+      font-size: 20px;
+      color: #fff;
+      width: 35px;
+      height: 35px;
+      cursor: pointer;
+      box-shadow: 0 0 15px #ff008c;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: 0.3s;
+      line-height: 1;
+    }
+
+    .close-btn:hover {
+      background: #ff33a6;
+      box-shadow: 0 0 20px #ff33a6;
+    }
+
+    /* Мобильные: кнопки в столбик */
+    @media (max-width: 560px) {
+      .buttons {
+        flex-direction: column;
+        width: 100%;
+        max-width: 400px;
+      }
+      button {
+        width: 100%;
+      }
+    }
+
+    /* Ландшафт на низких экранах */
+    @media (max-height: 500px) and (orientation: landscape) {
+      body {
+        gap: 8px;
+        padding: 10px;
+      }
+      h1 {
+        font-size: clamp(1.1rem, 3.2vw, 1.6rem);
+      }
+      .circle {
+        display: none; /* не мешают в ландшафте */
+      }
+      input[type="text"] {
+        padding: 8px 12px;
+        font-size: 0.95rem;
+      }
+      .neon-text {
+        font-size: 0.8rem;
+      }
+      button {
+        padding: 8px 14px;
+        font-size: 0.9rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Зелёные круги -->
+  <div class="circle" style="width:clamp(150px,25vw,250px); height:clamp(150px,25vw,250px); top:10%; left:15%;"></div>
+  <div class="circle" style="width:clamp(200px,35vw,350px); height:clamp(200px,35vw,350px); top:40%; left:60%; animation-delay: 3s;"></div>
+  <div class="circle" style="width:clamp(120px,20vw,200px); height:clamp(120px,20vw,200px); top:70%; left:30%; animation-delay: 6s;"></div>
+
+  <h1>POS terminal by sandropay</h1>
+
+  <!-- Поле для ввода -->
+  <input type="text" id="linkInput" value="http://0.0.0.0:2025/terminal.html" inputmode="url" autocomplete="off" spellcheck="false">
+
+  <div class="neon-text">открой на телефоне: замени 0.0.0.0 на IP, который ты получил</div>
+
+  <div class="buttons">
+    <button onclick="launchLink()">Запустить</button>
+    <button onclick="saveLink()">Сохранить ссылку</button>
+    <button onclick="resetLink()">Сбросить</button>
+  </div>
+
+  <!-- Всплывающее окно -->
+  <div class="popup-overlay" id="popupOverlay">
+    <div class="popup">
+      <button class="close-btn" onclick="closePopup()">×</button>
+      <h2>Неправильная ссылка</h2>
+    </div>
+  </div>
+
+  <script>
+    const input = document.getElementById('linkInput');
+    const popup = document.getElementById('popupOverlay');
+
+    const DEFAULT_LINK = "http://0.0.0.0:2025/terminal.html";
+    const VALID_ENDING = ":2025/terminal.html";
+
+    // Загружаем сохранённую ссылку
+    window.addEventListener('load', () => {
+      const savedLink = localStorage.getItem('savedTerminalLink');
+      if (savedLink) {
+        input.value = savedLink;
+      }
+    });
+
+    // Сохраняем ссылку
+    function saveLink() {
+      const val = input.value.trim();
+      if (!val) {
+        alert('Введите ссылку');
+        return;
+      }
+      localStorage.setItem('savedTerminalLink', val);
+      alert('Ссылка сохранена!');
+    }
+
+    // Сброс сохраненной ссылки
+    function resetLink() {
+      localStorage.removeItem('savedTerminalLink');
+      input.value = DEFAULT_LINK;
+      alert('Сохранённая ссылка сброшена!');
+    }
+
+    // Закрытие всплывающего окна
+    function closePopup() {
+      popup.style.display = 'none';
+    }
+
+    // Проверка и запуск ссылки
+    function launchLink() {
+      const url = input.value.trim();
+      if (url.endsWith(VALID_ENDING)) {
+        window.open(url, '_blank');
+        window.close();
+      } else {
+        popup.style.display = 'flex';
+      }
+    }
+
+    // Закрытие попапа по клику вне окна
+    popup.addEventListener('click', (e) => {
+      if (e.target === popup) closePopup();
+    });
+  </script>
+</body>
+</html>
